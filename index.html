@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1117">
+<title>NDC Copenhagen 2026 · My Agenda</title>
+<style>
+  :root{
+    --bg:#0d1117;
+    --panel:#161b22;
+    --panel-2:#1c232d;
+    --line:#2a323d;
+    --ink:#e9eef5;
+    --muted:#8b97a7;
+    --accent:#ff5a8a;
+    --accent-soft:rgba(255,90,138,.14);
+    --star:#ffc94d;
+    --room:#5ec8ff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  header{
+    position:sticky;top:0;z-index:20;
+    background:rgba(13,17,23,.86);
+    backdrop-filter:saturate(160%) blur(14px);
+    -webkit-backdrop-filter:saturate(160%) blur(14px);
+    border-bottom:1px solid var(--line);
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 10px;
+  }
+  .brand{
+    font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin:0 0 2px;
+  }
+  h1{font-size:20px;margin:0 0 12px;font-weight:700;letter-spacing:-.01em;}
+  .controls{display:flex;gap:8px;align-items:center;}
+  .seg{
+    display:flex;background:var(--panel);border:1px solid var(--line);
+    border-radius:11px;padding:3px;flex:1;
+  }
+  .seg button{
+    flex:1;border:0;background:transparent;color:var(--muted);
+    font-size:14px;font-weight:600;padding:8px 6px;border-radius:8px;
+    cursor:pointer;font-family:inherit;transition:.15s;
+  }
+  .seg button.active{background:var(--panel-2);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.3);}
+  .fav-toggle{
+    border:1px solid var(--line);background:var(--panel);color:var(--muted);
+    border-radius:11px;padding:0 14px;height:42px;font-size:14px;font-weight:600;
+    cursor:pointer;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:.15s;
+  }
+  .fav-toggle.on{background:var(--accent-soft);border-color:var(--accent);color:#fff;}
+  .fav-toggle .s{color:var(--star);}
+
+  main{padding:8px 12px 40px;max-width:680px;margin:0 auto;}
+  .slot-time{
+    font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);
+    text-transform:uppercase;margin:22px 4px 8px;
+  }
+  .talk{
+    display:flex;gap:10px;align-items:flex-start;
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:13px 12px;margin-bottom:8px;
+    transition:border-color .15s;
+  }
+  .talk.fav{border-color:rgba(255,201,77,.55);}
+  .talk-body{flex:1;min-width:0;}
+  .talk-meta{display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap;}
+  .room{
+    font-size:11px;font-weight:700;color:var(--room);
+    background:rgba(94,200,255,.12);border-radius:6px;padding:2px 7px;letter-spacing:.02em;
+  }
+  .room.expo{color:#c89bff;background:rgba(200,155,255,.12);}
+  a.title{
+    display:block;color:var(--ink);text-decoration:none;
+    font-size:15.5px;font-weight:650;letter-spacing:-.005em;
+  }
+  a.title:active{color:var(--accent);}
+  .speaker{font-size:13px;color:var(--muted);margin-top:3px;}
+  .star-btn{
+    flex:none;width:40px;height:40px;border:0;background:transparent;cursor:pointer;
+    font-size:23px;line-height:1;color:#3a4250;padding:0;display:flex;
+    align-items:center;justify-content:center;transition:transform .12s,color .12s;
+  }
+  .star-btn.on{color:var(--star);}
+  .star-btn:active{transform:scale(.82);}
+  .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:15px;}
+  .empty span{display:block;font-size:34px;margin-bottom:12px;}
+  footer{text-align:center;color:#566173;font-size:11px;padding:24px 16px;}
+  footer a{color:#566173;}
+</style>
+</head>
+<body>
+<header>
+  <p class="brand">NDC Copenhagen 2026</p>
+  <h1>My Agenda</h1>
+  <div class="controls">
+    <div class="seg" id="dayseg">
+      <button data-day="wed" class="active">Wed · 3 Jun</button>
+      <button data-day="thu">Thu · 4 Jun</button>
+    </div>
+    <button class="fav-toggle" id="favToggle"><span class="s">★</span> Favs</button>
+  </div>
+</header>
+<main id="app"></main>
+<footer>Tap ☆ to save a talk. Favourites are stored on this device.<br>
+Data from <a href="https://ndccopenhagen.com/agenda">ndccopenhagen.com</a></footer>
+
+<script>
+const TALKS = [
+  // ===== Wednesday 3 June =====
+  {d:"wed",t:"09:00 – 10:00",room:"Expo",title:"Keynote: After the AI Hype – What’s Real, and What’s Next",sp:"Richard Campbell",id:"5cd4ea71df2e",url:"https://ndccopenhagen.com/agenda/after-the-ai-hype-what-s-real-and-what-s-next/5cd4ea71df2e"},
+
+  {d:"wed",t:"10:20 – 11:20",room:"Room 1",title:"Let’s catch up with C#! Exciting new features in C# 9 to C# 14!",sp:"Filip Ekberg",id:"0cm2wdugq5d",url:"https://ndccopenhagen.com/agenda/lets-catch-up-with-c-exciting-new-features-in-c-9-to-c-14-0y9y/0cm2wdugq5d"},
+  {d:"wed",t:"10:20 – 11:20",room:"Room 2",title:"Five things every developer should know about building mission-critical systems",sp:"Loek Duys",id:"09w82qeuoyp",url:"https://ndccopenhagen.com/agenda/five-things-every-developer-should-know-about-building-mission-critical-systems-0p99/09w82qeuoyp"},
+  {d:"wed",t:"10:20 – 11:20",room:"Room 3",title:"A Brief History of Data Storage",sp:"Eli Holderness",id:"0h8z1fn4vxg",url:"https://ndccopenhagen.com/agenda/a-brief-history-of-data-storage-07vp/0h8z1fn4vxg"},
+  {d:"wed",t:"10:20 – 11:20",room:"Room 4",title:"AI Security in Practice: Protecting Your AI-Powered Applications",sp:"Olivia Liddell",id:"0s4fz3nlc46",url:"https://ndccopenhagen.com/agenda/ai-security-in-practice-protecting-your-ai-powered-applications-0cjo/0s4fz3nlc46"},
+  {d:"wed",t:"10:20 – 11:20",room:"Room 5",title:"Beyond Pub/Sub - Advanced Messaging Patterns",sp:"Poornima Nayar",id:"0owyaep5ese",url:"https://ndccopenhagen.com/agenda/beyond-pubsub-advanced-messaging-patterns-0tpy/0owyaep5ese"},
+
+  {d:"wed",t:"11:40 – 12:40",room:"Room 1",title:"AI: It AI-n't What You Think!",sp:"Venkat Subramaniam",id:"0u8q5ov4poe",url:"https://ndccopenhagen.com/agenda/ai-it-ai-nt-what-you-think-0cq0/0u8q5ov4poe"},
+  {d:"wed",t:"11:40 – 12:40",room:"Room 2",title:"Focus in a Fragmented World: A Developer’s Guide to Staying Productive",sp:"Susanne Bach Ladefoged Hou",id:"0j9yvcjzxaa",url:"https://ndccopenhagen.com/agenda/focus-in-a-fragmented-world-a-developers-guide-to-staying-productive-09gx/0j9yvcjzxaa"},
+  {d:"wed",t:"11:40 – 12:40",room:"Room 3",title:"From \"Trust Me\" to \"Verify Me\"",sp:"Tom van den Berg",id:"00arkbbzum3",url:"https://ndccopenhagen.com/agenda/from-trust-me-to-verify-me-0o0j/00arkbbzum3"},
+  {d:"wed",t:"11:40 – 12:40",room:"Room 4",title:"Tour of Agent Protocols: MCP, A2A, AG-UI, A2UI",sp:"Mete Atamel",id:"0cw3wf4navp",url:"https://ndccopenhagen.com/agenda/tour-of-agent-protocols-mcp-a2a-ag-ui-a2ui/0cw3wf4navp"},
+  {d:"wed",t:"11:40 – 12:40",room:"Room 5",title:"Global Bias in AI: When Western Data Shapes the World",sp:"Masuma Shariff",id:"0lytrp45thm",url:"https://ndccopenhagen.com/agenda/global-bias-in-ai-when-western-data-shapes-the-world-0eff/0lytrp45thm"},
+
+  {d:"wed",t:"13:40 – 14:40",room:"Room 1",title:"10 tips to level up your AI-assisted coding",sp:"Aleksander Stensby",id:"9dd8396251a9",url:"https://ndccopenhagen.com/agenda/10-tips-to-level-up-your-ai-assisted-coding/9dd8396251a9"},
+  {d:"wed",t:"13:40 – 14:40",room:"Room 2",title:"Test Driving Code with the Help of AI",sp:"Venkat Subramaniam",id:"0mlwfpz69vr",url:"https://ndccopenhagen.com/agenda/test-driving-code-with-the-help-of-ai-0de8/0mlwfpz69vr"},
+  {d:"wed",t:"13:40 – 14:40",room:"Room 3",title:"Everything a .NET developer needs to know about configuration and secret management",sp:"Sander ten Brinke",id:"0mcfn3rsyld",url:"https://ndccopenhagen.com/agenda/everything-a-net-developer-needs-to-know-about-configuration-and-secret-management-0alt/0mcfn3rsyld"},
+  {d:"wed",t:"13:40 – 14:40",room:"Room 4",title:"How I helped developers talk about feelings and needs",sp:"Gitte Klitgaard",id:"0a72lg2a93u",url:"https://ndccopenhagen.com/agenda/how-i-helped-developers-talk-about-feelings-and-needs-0z50/0a72lg2a93u"},
+  {d:"wed",t:"13:40 – 14:40",room:"Room 5",title:"Lightning Talks 1",sp:"Theodor René Carlsen, Kristoffer Nordström",id:"0he5mnt1kdo",url:"https://ndccopenhagen.com/agenda/lightning-talks-1-0raw/0he5mnt1kdo"},
+
+  {d:"wed",t:"15:00 – 16:00",room:"Room 1",title:"Building Better Components - A Journey to a More Resilient Frontend",sp:"Daniel Yuschick",id:"06o112nk13x",url:"https://ndccopenhagen.com/agenda/building-better-components-a-journey-to-a-more-resilient-frontend-0a4h/06o112nk13x"},
+  {d:"wed",t:"15:00 – 16:00",room:"Room 2",title:"Dangerous Reactivity: Why AI Output Is the New XSS",sp:"Ramona Schwering",id:"0evtg3zx9ak",url:"https://ndccopenhagen.com/agenda/dangerous-reactivity-why-ai-output-is-the-new-xss-0f7x/0evtg3zx9ak"},
+  {d:"wed",t:"15:00 – 16:00",room:"Room 3",title:"Designing REST APIs for the age of AI agents",sp:"Boyan Mihaylov",id:"0rghm3y3au6",url:"https://ndccopenhagen.com/agenda/designing-rest-apis-for-the-age-of-ai-agents-0fcs/0rghm3y3au6"},
+  {d:"wed",t:"15:00 – 16:00",room:"Room 4",title:"Evolving AI chat with MCP Apps",sp:"Phil Nash",id:"0gh3vdfrj4c",url:"https://ndccopenhagen.com/agenda/evolving-ai-chat-with-mcp-apps-0npf/0gh3vdfrj4c"},
+  {d:"wed",t:"15:00 – 16:00",room:"Room 5",title:"It's like 10,000 streams when what you need is a queue",sp:"Chris Simon",id:"0oc5wuf1cis",url:"https://ndccopenhagen.com/agenda/its-like-10000-streams-when-what-you-need-is-a-queue-0gvj/0oc5wuf1cis"},
+
+  {d:"wed",t:"16:20 – 17:20",room:"Room 1",title:"The Sound of Your Secrets: Teaching Your Model to Spy, So You Can Learn to Defend",sp:"David vonThenen",id:"0c5e130d9d9a",url:"https://ndccopenhagen.com/agenda/the-sound-of-your-secrets-teaching-your-model-to-spy-so-you-can-learn-to-defend-0bdr/0c5e130d9d9a"},
+  {d:"wed",t:"16:20 – 17:20",room:"Room 2",title:"Building fun and creative messaging experiences on WhatsApp",sp:"Michelle \"MishManners\" Duke",id:"08m6dwxi84v",url:"https://ndccopenhagen.com/agenda/building-fun-and-creative-messaging-experiences-on-whatsapp-0db8/08m6dwxi84v"},
+  {d:"wed",t:"16:20 – 17:20",room:"Room 3",title:"Imagine If We Made It Simple",sp:"Gui Ferreira",id:"0z1711btwam",url:"https://ndccopenhagen.com/agenda/imagine-if-we-made-it-simple-0eq0/0z1711btwam"},
+  {d:"wed",t:"16:20 – 17:20",room:"Room 4",title:"Inside Today’s AI-Accelerated Software Supply Chain Attacks",sp:"Mackenzie Jackson",id:"0rvbvqum2vt",url:"https://ndccopenhagen.com/agenda/inside-todays-ai-accelerated-software-supply-chain-attacks-0rcu/0rvbvqum2vt"},
+  {d:"wed",t:"16:20 – 17:20",room:"Room 5",title:"Machines, Learning, and Machine Learning",sp:"Dylan Beattie",id:"3570726443e8",url:"https://ndccopenhagen.com/agenda/machines-learning-and-machine-learning/3570726443e8"},
+
+  {d:"wed",t:"17:40 – 18:40",room:"Room 1",title:"The AI puppet dance",sp:"Einar Høst",id:"0xbpuhkpzqu",url:"https://ndccopenhagen.com/agenda/the-ai-puppet-dance-01w8/0xbpuhkpzqu"},
+  {d:"wed",t:"17:40 – 18:40",room:"Room 2",title:"Web APIs You Should Be Using in 2026: Unlocking Next-Level Web Experiences",sp:"Nhlanhla Lucky Nkosi",id:"0akpt4if3ek",url:"https://ndccopenhagen.com/agenda/web-apis-you-should-be-using-in-2026-unlocking-next-level-web-experiences-077m/0akpt4if3ek"},
+  {d:"wed",t:"17:40 – 18:40",room:"Room 3",title:"How Anthropic uses Claude Code: Agentic Software Engineering at Scale",sp:"Daisy Hollman",id:"70b42b46dcd5",url:"https://ndccopenhagen.com/agenda/how-anthropic-uses-claude-code-agentic-software-engineering-at-scale/70b42b46dcd5"},
+  {d:"wed",t:"17:40 – 18:40",room:"Room 4",title:"Above the Cloud: Building Data Centers in Space",sp:"Richard Campbell",id:"0bl5e010dzy",url:"https://ndccopenhagen.com/agenda/above-the-cloud-building-data-centers-in-space-0xak/0bl5e010dzy"},
+  {d:"wed",t:"17:40 – 18:40",room:"Room 5",title:"How I Tamed Claude",sp:"Emmz Rendle",id:"07tnc0mz5eh",url:"https://ndccopenhagen.com/agenda/how-i-tamed-claude-0x5t/07tnc0mz5eh"},
+
+  {d:"wed",t:"18:40 – 22:00",room:"Expo",title:"NDC Party",sp:"The Linebreakers · Anders Norås",id:"0788f80b0963",url:"https://ndccopenhagen.com/agenda/ndc-party-cph/0788f80b0963"},
+
+  // ===== Thursday 4 June =====
+  {d:"thu",t:"09:00 – 10:00",room:"Room 1",title:"Functional Programming Made Simple",sp:"Simon Painter",id:"0fm7w6o672e",url:"https://ndccopenhagen.com/agenda/functional-programming-made-simple-0d5b/0fm7w6o672e"},
+  {d:"thu",t:"09:00 – 10:00",room:"Room 2",title:"Completing the Rewrite from Hell: Five Years of Technical Debt and How We Escaped",sp:"Aaron Stannard",id:"0ud77xngdcg",url:"https://ndccopenhagen.com/agenda/completing-the-rewrite-from-hell-five-years-of-technical-debt-and-how-we-escaped-0zw8/0ud77xngdcg"},
+  {d:"thu",t:"09:00 – 10:00",room:"Room 3",title:".NET Testing Techniques You Didn’t Know You Needed",sp:"Dante De Ruwe",id:"0p6kmhm25pe",url:"https://ndccopenhagen.com/agenda/net-testing-techniques-you-didnt-know-you-needed-0il0/0p6kmhm25pe"},
+  {d:"thu",t:"09:00 – 10:00",room:"Room 4",title:"How to Lie with AI: Understanding Bias, Ethics, and the Hidden Risks in Machine Learning",sp:"Clarissa Rodrigues",id:"0iuah5m87sv",url:"https://ndccopenhagen.com/agenda/how-to-lie-with-ai-understanding-bias-ethics-and-the-hidden-risks-in-machine-learning-0q0z/0iuah5m87sv"},
+  {d:"thu",t:"09:00 – 10:00",room:"Room 5",title:".NET supply chain: Protecting against hidden threats",sp:"Tom van den Berg",id:"0sdd2jc8jas",url:"https://ndccopenhagen.com/agenda/net-supply-chain-protecting-against-hidden-threats-0fnx/0sdd2jc8jas"},
+
+  {d:"thu",t:"10:20 – 11:20",room:"Room 1",title:"Let's break some WCAG rules",sp:"Elise Kristiansen",id:"02974n41189",url:"https://ndccopenhagen.com/agenda/lets-break-some-wcag-rules-0m29/02974n41189"},
+  {d:"thu",t:"10:20 – 11:20",room:"Room 2",title:"Let's build an AI agent",sp:"Phil Nash",id:"08wewbsp43s",url:"https://ndccopenhagen.com/agenda/lets-build-an-ai-agent-0j0g/08wewbsp43s"},
+  {d:"thu",t:"10:20 – 11:20",room:"Room 3",title:"Optimizing your HttpClient usage",sp:"Nico Vermeir",id:"01gguyo4wg4",url:"https://ndccopenhagen.com/agenda/optimizing-your-httpclient-usage-09m9/01gguyo4wg4"},
+  {d:"thu",t:"10:20 – 11:20",room:"Room 4",title:"Most Expensive Design Mistakes (Ever) and how to avoid them",sp:"Clarissa Rodrigues",id:"04zutouiuzf",url:"https://ndccopenhagen.com/agenda/most-expensive-design-mistakes-ever-and-how-to-avoid-them-07iq/04zutouiuzf"},
+  {d:"thu",t:"10:20 – 11:20",room:"Room 5",title:"Application Performance Optimisation in Practice",sp:"Steve Gordon",id:"0z5j9lwjqky",url:"https://ndccopenhagen.com/agenda/application-performance-optimisation-in-practice/0z5j9lwjqky"},
+
+  {d:"thu",t:"11:40 – 12:40",room:"Room 1",title:"Is Spec Kit the future for software development",sp:"Johan Smarius",id:"0tlp6xrtrjc",url:"https://ndccopenhagen.com/agenda/is-spec-kit-the-future-for-software-development-0te7/0tlp6xrtrjc"},
+  {d:"thu",t:"11:40 – 12:40",room:"Room 2",title:"Platform Engineering in the age of Generative AI",sp:"Will Velida",id:"0d9is6irccr",url:"https://ndccopenhagen.com/agenda/platform-engineering-in-the-age-of-generative-ai-0160/0d9is6irccr"},
+  {d:"thu",t:"11:40 – 12:40",room:"Room 3",title:"POC Prison: Why agentic systems never escape the lab and how to fix that in 90 days",sp:"Luise Freese",id:"03ugt804tnn",url:"https://ndccopenhagen.com/agenda/poc-prison-why-agentic-systems-never-escape-the-lab-and-how-to-fix-that-in-90-days-0bq6/03ugt804tnn"},
+  {d:"thu",t:"11:40 – 12:40",room:"Room 4",title:"AI Agents In-Depth – Function Calling, MCP and Tool Use Under the Hood",sp:"Alan Smith",id:"02rpn8tyeu8",url:"https://ndccopenhagen.com/agenda/ai-agents-in-depth-function-calling-mcp-and-tool-use-under-the-hood-0448/02rpn8tyeu8"},
+  {d:"thu",t:"11:40 – 12:40",room:"Room 5",title:"Secure coding in the age of AI",sp:"Mariam reba Alexander",id:"0se2qzx4j7d",url:"https://ndccopenhagen.com/agenda/secure-coding-in-the-age-of-ai-0ini/0se2qzx4j7d"},
+
+  {d:"thu",t:"13:40 – 14:40",room:"Room 1",title:"Stop writing software like it's 1999!",sp:"Hannes Lowette",id:"05ftuz1hh6l",url:"https://ndccopenhagen.com/agenda/stop-writing-software-like-its-1999-0p6u/05ftuz1hh6l"},
+  {d:"thu",t:"13:40 – 14:40",room:"Room 2",title:"Put an Agent Inside Your App in 10 Minutes or Less with the GitHub Copilot SDK",sp:"Daniel Ward",id:"0klc4metjqp",url:"https://ndccopenhagen.com/agenda/put-an-agent-inside-your-app-in-10-minutes-or-less-with-the-github-copilot-sdk-0db5/0klc4metjqp"},
+  {d:"thu",t:"13:40 – 14:40",room:"Room 3",title:"Responsibly Abandoning Open Source Projects",sp:"Jason Turner",id:"0yglxs170wl",url:"https://ndccopenhagen.com/agenda/responsibly-abandoning-open-source-projects-09zg/0yglxs170wl"},
+  {d:"thu",t:"13:40 – 14:40",room:"Room 4",title:"AI-Powered Gamification for the Web",sp:"Courtney Yatteau",id:"083x0fh6918",url:"https://ndccopenhagen.com/agenda/ai-powered-gamification-for-the-web-0djq/083x0fh6918"},
+  {d:"thu",t:"13:40 – 14:40",room:"Room 5",title:"Lightning Talks 2",sp:"Anna Kvashchuk · Kristoffer Strube · Mackenzie Jackson",id:"0i8h9hghhaq",url:"https://ndccopenhagen.com/agenda/lightning-talks-2-0apt/0i8h9hghhaq"},
+
+  {d:"thu",t:"15:00 – 16:00",room:"Room 1",title:"Building a real-time collaborative editor",sp:"Mihaela Gheorghe-Roman",id:"0ch703j294x",url:"https://ndccopenhagen.com/agenda/building-a-real-time-collaborative-editor-0npj/0ch703j294x"},
+  {d:"thu",t:"15:00 – 16:00",room:"Room 2",title:"A Python and a Viking King - How Computer Stuff Got Named",sp:"Simon Painter",id:"0cqylreo8j2",url:"https://ndccopenhagen.com/agenda/a-python-and-a-viking-king-how-computer-stuff-got-named-01ln/0cqylreo8j2"},
+  {d:"thu",t:"15:00 – 16:00",room:"Room 3",title:"Building an AI-Powered Personal Companion Mobile App",sp:"Gerald Versluis",id:"0cp0y5eiqre",url:"https://ndccopenhagen.com/agenda/building-an-ai-powered-personal-companion-mobile-app-0gon/0cp0y5eiqre"},
+  {d:"thu",t:"15:00 – 16:00",room:"Room 4",title:"ASP.NET Core Authentication - The Dirty Details",sp:"Chris Klug",id:"0751hvra6gw",url:"https://ndccopenhagen.com/agenda/aspnet-core-authentication-the-dirty-details-096d/0751hvra6gw"},
+  {d:"thu",t:"15:00 – 16:00",room:"Room 5",title:"Write Drunk, Edit Sober: Creating Generative Content Responsibly",sp:"Matthijs van der Veer",id:"0l6mged8vja",url:"https://ndccopenhagen.com/agenda/write-drunk-edit-sober-creating-generative-content-responsibly-01e9/0l6mged8vja"},
+
+  {d:"thu",t:"16:20 – 17:20",room:"Expo",title:"Locknote: Reasons to be Cheerful: 0, 1, 2",sp:"Emmz Rendle",id:"0fo4kg7oc7a",url:"https://ndccopenhagen.com/agenda/reasons-to-be-cheerful-0-1-2-0e7n/0fo4kg7oc7a"},
+];
+
+const KEY = "ndc_cph_2026_favs";
+let favs = new Set();
+try { favs = new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch(e){}
+
+let day = "wed";
+let favsOnly = false;
+
+function save(){ try { localStorage.setItem(KEY, JSON.stringify([...favs])); } catch(e){} }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function render(){
+  const app = document.getElementById("app");
+  let list = TALKS.filter(t => t.d === day);
+  if (favsOnly) list = list.filter(t => favs.has(t.id));
+
+  if (list.length === 0){
+    app.innerHTML = `<div class="empty"><span>☆</span>${favsOnly ? "No favourites for this day yet.<br>Tap the star on a talk to add one." : "No talks."}</div>`;
+    return;
+  }
+
+  let html = "", lastSlot = null;
+  for (const t of list){
+    if (t.t !== lastSlot){
+      html += `<div class="slot-time">${t.t}</div>`;
+      lastSlot = t.t;
+    }
+    const on = favs.has(t.id);
+    const expo = t.room === "Expo" ? " expo" : "";
+    html += `
+      <div class="talk${on ? " fav" : ""}">
+        <div class="talk-body">
+          <div class="talk-meta"><span class="room${expo}">${esc(t.room)}</span></div>
+          <a class="title" href="${t.url}" target="_blank" rel="noopener">${esc(t.title)}</a>
+          <div class="speaker">${esc(t.sp)}</div>
+        </div>
+        <button class="star-btn${on ? " on" : ""}" data-id="${t.id}" aria-label="Toggle favourite">${on ? "★" : "☆"}</button>
+      </div>`;
+  }
+  app.innerHTML = html;
+}
+
+document.getElementById("app").addEventListener("click", e => {
+  const btn = e.target.closest(".star-btn");
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (favs.has(id)) favs.delete(id); else favs.add(id);
+  save();
+  render();
+});
+
+document.getElementById("dayseg").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  day = b.dataset.day;
+  document.querySelectorAll("#dayseg button").forEach(x => x.classList.toggle("active", x === b));
+  render();
+});
+
+document.getElementById("favToggle").addEventListener("click", e => {
+  favsOnly = !favsOnly;
+  e.currentTarget.classList.toggle("on", favsOnly);
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
