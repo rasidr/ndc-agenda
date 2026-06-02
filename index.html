@@ -81,11 +81,11 @@
     background:rgba(94,200,255,.12);border-radius:6px;padding:2px 7px;letter-spacing:.02em;
   }
   .room.expo{color:#c89bff;background:rgba(200,155,255,.12);}
-  a.title{
+  .title{
     display:block;color:var(--ink);text-decoration:none;
     font-size:15.5px;font-weight:650;letter-spacing:-.005em;
   }
-  a.title:active{color:var(--accent);}
+  .talk.open .title{color:var(--accent);}
   .speaker{font-size:13px;color:var(--muted);margin-top:3px;}
   .star-btn{
     flex:none;width:40px;height:40px;border:0;background:transparent;cursor:pointer;
@@ -250,7 +250,7 @@ function render(){
       <div class="talk${on ? " fav" : ""}${open ? " open" : ""}">
         <div class="talk-body" data-toggle="${t.id}">
           <div class="talk-meta"><span class="room${expo}">${esc(t.room)}</span></div>
-          <a class="title" href="${t.url}" target="_blank" rel="noopener">${esc(t.title)}</a>
+          <div class="title">${esc(t.title)}</div>
           <div class="speaker">${esc(t.sp)}<span class="chev">▶</span></div>
           <div class="desc"><div class="desc-inner">
             ${descHtml}
